@@ -37,8 +37,6 @@
     <svg id="gaussianContainerCruve" width="1000" height="500"></svg>
     <script>
 
-
-        //wtf global to remove
         var toolTipElement = document.getElementById("toolTip");
         toolTipElement.style.position = "absolute";
 
@@ -51,7 +49,6 @@
         }
         function hideToolTip() {
             toolTipElement.innerHTML = " ";
-
         }
 
         function drawGaussianCurve() {
@@ -88,7 +85,6 @@
                     for (var i = leftBound; i <= rightBound; i++) {
                         data.push({ x: i, y: (1 / (std * Math.sqrt(Math.PI * 2))) * Math.exp(-(Math.pow(i - mean, 2) / (2 * variance))) });
                     }
-                    console.log(data);
                     return data;
                 }
 
@@ -151,6 +147,9 @@
 
             var seriesName = "NORMAL DAĞILIM GRAFİĞİ";
             var sample = calculationService.sort(calculationService.getRandomValueArray(200, -100, 100));
+    
+            console.log(sample);
+
             var sum = calculationService.getSum(sample);
             var min = sample[0];
             var max = sample[sample.length - 1];
@@ -260,7 +259,7 @@
                     .call(yAxis);
 
             vis.append("svg:g")
-                    .append("text")      // text label for the x axis
+                    .append("text") // text label for the x axis
                     .attr("x", width / 2 + width / 4)
                     .attr("y", 20)
 
