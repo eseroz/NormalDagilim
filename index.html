@@ -3,7 +3,9 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title>Gaussian curve</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>-->
+    <script src="script.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
     <style>
         .axis path {
             fill: none;
@@ -37,6 +39,47 @@
     <svg id="gaussianContainerCruve" width="1000" height="500"></svg>
     <script>
 
+        var _mean;
+        var _standardDerivation;
+
+
+
+
+        var data = [];
+
+        data.push(1);
+        data.push(0);
+        data.push(1);
+        data.push(1);
+        data.push(35);
+        data.push(3);
+        data.push(3);
+        data.push(4);
+        data.push(4);
+        data.push(45);
+        data.push(45);
+        data.push(45);
+        data.push(5);
+        data.push(1);
+        data.push(6);
+        data.push(7);
+        data.push(8);
+        data.push(88);
+        data.push(88);
+        data.push(8);
+        data.push(7);
+        data.push(7);
+        data.push(6);
+        data.push(5);
+        data.push(7);
+        data.push(7);
+        data.push(6);
+        data.push(5);
+        data.push(7);
+        data.push(7);
+        data.push(6);
+        data.push(150);
+
         var toolTipElement = document.getElementById("toolTip");
         toolTipElement.style.position = "absolute";
 
@@ -54,6 +97,7 @@
         function drawGaussianCurve() {
 
             var calculationService = (function () {
+
                 var distanceFromMean = 5;
 
                 function getRightBound(middle, step) {
@@ -73,13 +117,11 @@
                     }
                     return temp / values.length;
                 }
-
                 function getSum(values) {
                     return values.reduce(function (previousValue, currentValue) {
                         return previousValue + currentValue;
                     });
                 }
-
                 function getGaussianFunctionPoints(std, mean, variance, leftBound, rightBound) {
                     var data = [];
                     for (var i = leftBound; i <= rightBound; i++) {
@@ -87,16 +129,12 @@
                     }
                     return data;
                 }
-
                 function getMean(valueSum, numberOfOccurrences) {
                     return valueSum / numberOfOccurrences
                 }
-
                 function getZ(x, mean, standardDerivation) {
-
                     return (x - mean) / standardDerivation;
                 }
-
                 function getWeightedValues(values) {
                     var weightedValues = {};
                     var data = [];
@@ -113,13 +151,10 @@
                     }
 
                     return data;
-
-
                 }
                 function getRandomNumber(min, max) {
                     return (Math.round((max - min) * Math.random() + min));
                 }
-
                 function getRandomValueArray(numberOfValues, min, max) {
                     var values = [];
                     for (var i = 0; i < numberOfValues; i++) {
@@ -146,16 +181,20 @@
 
 
             var seriesName = "NORMAL DAĞILIM GRAFİĞİ";
-            var sample = calculationService.sort(calculationService.getRandomValueArray(200, -100, 100));
-    
-            console.log(sample);
-
+            //var sample = calculationService.sort(calculationService.getRandomValueArray(200, -100, 100));
+            var sample = calculationService.sort(data);
             var sum = calculationService.getSum(sample);
             var min = sample[0];
             var max = sample[sample.length - 1];
             var mean = calculationService.getMean(sum, sample.length);
+
+            _mean = mean;
+
             var variance = calculationService.getVariance(sample, mean);
             var standardDerivation = Math.sqrt(variance);
+
+            _standardDerivation = standardDerivation;
+
             var rightBound = calculationService.getRightBound(mean, standardDerivation);
             var leftBound = calculationService.getLeftBound(mean, standardDerivation);
             var bottomBound = 0;
@@ -216,15 +255,9 @@
 
                     xScale = d3.scale.linear().range([margins.left, width - margins.right]).domain([leftBound, rightBound]),
                     yScale = d3.scale.linear().range([height - margins.top, margins.bottom]).domain([bottomBound, topBound]),
-                    
-                    xAxis = d3.svg.axis().ticks(20)
-                            .scale(xScale),
 
-                    yAxis = d3.svg.axis()
-                            .scale(yScale)
-                            .ticks(10)
-                            .tickPadding(0)
-                            .orient("right");
+                    xAxis = d3.svg.axis().ticks(20).scale(xScale),
+                    yAxis = d3.svg.axis().scale(yScale).ticks(10).tickPadding(0).orient("right");
 
             var lineGen = d3.svg.line()
                     .x(function (d) {
@@ -234,6 +267,7 @@
                         return yScale(d.y);
                     }).interpolate("basis");
 
+   
             vis.append('svg:path')
                     .attr('d', lineGen(gaussianCurveData))
                     .data([gaussianCurveData])
@@ -262,7 +296,6 @@
                     .append("text") // text label for the x axis
                     .attr("x", width / 2 + width / 4)
                     .attr("y", 20)
-
                     .style("text-anchor", "middle")
                     .style("fill", "white")
                     .text(seriesName);
@@ -270,14 +303,47 @@
             vis.selectAll("circle")
                     .data(calculationService.getWeightedValues(sample)).enter().append("circle")
                     // text label for the x axis
-                    .attr("cx", function (d) { return xScale(d.value) })
+                    .attr("cx", function (d) {
+                        console.log("xScale :" + xScale(d.value));
+                        console.log("d.value :" + d.value);
+                        console.log(d);
+                        return xScale(d.value)
+                    })
                     .attr("cy", height - margins.bottom)
                     .attr("r", function (d) { return d.weight * gaussianWidget.circles.radiusCoef; })
                     .style("fill", gaussianWidget.circles.fill)
-                    .style("opacity", gaussianWidget.circles.opacity);
+                    .style("opacity", gaussianWidget.circles.opacity);           
+
+                
+            vis.append("line").attr("id", "left-sigma")
+                   .style("stroke", "black")
+                   .style("stroke-width", "3")
+                   .attr("y1", 0)
+                   .attr("y2", $("#gaussianContainerCruve").height());
+
         }
 
         drawGaussianCurve();
+        
+
+        var x = $("#gaussianContainerCruve").find(".domain:last").parent().attr("transform");
+        x = x.substr(10, 3);
+        var leftSigmaX = _mean - _standardDerivation;
+        var rightSigmaX = _mean - _standardDerivation;
+
+        //console.log(leftSigmaX);
+        //console.log(rightSigmaX);
+
+        $("#left-sigma").attr("x1", leftSigmaX);
+        $("#left-sigma").attr("x2", leftSigmaX);
+
+
+
+        var xAxis = $("#gaussianContainerCruve").find(".domain:first").width();
+        console.log(xAxis);
+      
+   
     </script>
+
 </body>
 </html>
